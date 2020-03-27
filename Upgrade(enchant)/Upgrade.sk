@@ -1,0 +1,279 @@
+﻿options:
+	말머리: &e&l[ 강화도우미 ]&f
+
+command /강화 [<text>] [<text>]:
+	aliases:rkdghk
+	trigger:
+#usage
+		if arg 1 is not set:
+			message "{@말머리} &f/강화 &b&o도움말&r" to player
+			message "{@말머리} &f/강화 &6&l시작 &b&o[옵션]&r > &a[옵션]&r의 인첸트를 &d&o1레벨&r 강화 시도합니다." to player
+			message "{@말머리} &f/강화 &6&l가격 &b&o[옵션]&r > &a[옵션]&r의 인첸트를 강화했을 때 들어가는 &6&l비용&r을 확인합니다." to player
+			message "{@말머리} &f/강화 &6&l확률 &b&o[옵션]&r > &a[옵션]&r의 인첸트를 강화시 &4성공/실패 확률&r을 확인합니다." to player
+
+#trigger start
+		else:
+	#도움말 띄우기
+			if arg 1 is "도움말" or "ehdnaakf":
+				message " ==============================[&6&l강화 도우미&r]==============================" to player
+				message " &a&l@ 강화적용방법 " to player
+				message " └> 왼손에 강화를 할 장비를 착용 후 명령어를 이용해주세요." to player
+				message " &a&l@ 강화가능옵션 " to player
+				message " └> 내구성, 날카로움, 약탈, 행운, 효율, 바행(바다의행운), 섬손[1회], 수선[1회]" to player
+				message " &a&l@     금액" to player
+				message " └> 1. 내구성, 날카로움, 효율, 바다의행운 > (목표)강화 차수 X 150 만 게임머니" to player
+				message "       ex)  내구성 5->6 으로 강화 시 => 6 * 150 만 게임머니 = 900 만 게임머니 " to player
+				message "    2. 수선 > 3000 만 게임머니 / 섬손 > 500 만 게임머니" to player
+				message "    3. 행운, 약탈 > (목표)강화 차수 X 300 만 게임머니" to player
+				message "       ex)  약탈 5->6 으로 강화 시 => 6 * 300 만 게임머니 = 1800 만 게임머니 " to player
+				message " &a&l@  강화확률표 " to player
+				message " └> 100 - (5 X [현재 강화 레벨]) " to player
+				message "       ex) 8강 -> 9강 > 100 - (5X8) %% = 60%% " to player
+				message "           16강 이후의 확률은 20%%로 고정됩니다. " to player
+				message " ==============================[&6&l강화 도우미&r]==============================" to player
+				exit
+
+#가격 계산 해주기
+			if arg 1 is "가격" or "rkrur":
+	#왼손에 아무것도 없을 때
+				if player's offhand is air:
+					message "{@말머리} &4장비를 왼손에 착용해주세요." to player
+					exit
+	
+				else:
+		#지원하는 무기의 타입이 아닐 때
+					if "%type of player's offhand%" don't contain "shovel" or "pickaxe" or "axe" or "sword":
+						message "{@말머리} &4인챈트가 가능한 장비가 아닙니다." to player
+						message " &o인챈트 가능한 장비&r &b>>>&r &a삽, 도끼, 곡괭이, 칼&r" to player
+
+					else:
+						if arg 2 is set:
+							#150만원 라인업
+							if arg 2 is "날카로움":
+								set {_enchant_type} to sharpness
+								set {_mul_price} to 150
+								set {_typez} to 1
+							else if arg 2 is "내구성":
+								set {_enchant_type} to unbreaking
+								set {_mul_price} to 150
+								set {_typez} to 1
+							else if arg 2 is "효율":
+								set {_enchant_type} to efficiency
+								set {_mul_price} to 150
+								set {_typez} to 1
+							else if arg 2 is "바행":
+								set {_enchant_type} to luck of the sea
+								set {_mul_price} to 150
+								set {_typez} to 1
+
+							#300만원 라인업
+							else if arg 2 is "행운":
+								set {_enchant_type} to fortune
+								set {_mul_price} to 300
+								set {_typez} to 1
+
+							else if arg 2 is "약탈":
+								set {_enchant_type} to looting
+								set {_mul_price} to 300
+								set {_typez} to 1
+
+							#섬손, 수선
+							else if arg 2 is "수선":
+								if level of mending of player's offhand is not set:
+									set {_guess_price} to 5000
+									set {_typez} to 2
+								else:
+									message "{@말머리} 이미 수선 옵션이 존재합니다." to player
+									exit
+
+							else if arg 2 is "섬손":
+								if level of silk touch of player's offhand is not set:
+									set {_guess_price} to 500
+									set {_typez} to 2
+								else:
+									message "{@말머리} 이미 섬세한손 옵션이 존재합니다." to player
+									exit
+							else:
+								message "{@말머리} 올바른 인챈트 옵션을 입력해주세요." to player
+								exit
+			#섬손, 수선 제외 가격 계산
+
+							if {_typez} is 1:
+								set {_guess_price} to ((level of {_enchant_type} of player's offhand+1) * {_mul_price})		
+							
+							message "{@말머리} [&b%arg 2%] %level of {_enchant_type} of player's offhand% -> %(level of {_enchant_type} of player's offhand+1)% 레벨 강화 비용"
+
+							if {_guess_price} >= 10000:
+								message "{@말머리} > &c%floor({_guess_price}/10000)%&6억&r &d%mod({_guess_price},10000)%&9만원&r"
+							else:
+								message "{@말머리} > &d%{_guess_price}%&9만원&r"
+						
+						else:
+							message "{@말머리} 올바른 인챈트 옵션을 입력해주세요." to player
+							exit
+
+#확률 계산해주기
+			if arg 1 is "확률" or "ghkrfbf":
+				if arg 2 is not set:
+					message "{@말머리} 인챈트 옵션을 입력해주세요!" to player
+					exit
+				else:
+	#왼손에 아무것도 없을 때
+					if type of player's offhand is air:
+						message "{@말머리} &4장비를 왼손에 착용해주세요." to player
+					else:
+		#지원하는 무기의 타입이 아닐 때
+						if "%type of player's offhand%" don't contain "shovel" or "pickaxe" or "axe" or "sword":
+							message "{@말머리} &4인챈트가 가능한 장비가 아닙니다." to player
+							message " &o인챈트 가능한 장비&r &b>>>&r &a삽, 도끼, 곡괭이, 칼&r" to player
+						else:
+							if arg 2 is "날카로움":
+								message arg 2 to player
+								set {_enchant_type} to sharpness
+							else if arg 2 is "내구성":
+								set {_enchant_type} to unbreaking
+							else if arg 2 is "효율":
+								set {_enchant_type} to efficiency
+							else if arg 2 is "바행":
+								set {_enchant_type} to luck of the sea
+							else if arg 2 is "행운":
+								set {_enchant_type} to fortune
+							else if arg 2 is "약탈":
+								set {_enchant_type} to looting
+							else if arg 2 is "섬손":
+								message "{@말머리} 섬세한 손은 &b100%%&r의 확률로 성공합니다." to player
+								exit
+							else if arg 2 is "수선":
+								message "{@말머리} 수선은 &b100%%&r의 확률로 성공합니다." to player
+								exit
+							else:
+								message "{@말머리} 올바른 인챈트 옵션을 입력해주세요." to player
+								exit
+
+							message "{@말머리} [&b%arg 2%] %level of {_enchant_type} of player's offhand% -> %(level of {_enchant_type} of player's offhand+1)% 레벨 강화 확률"
+							if level of {_enchant_type} of player's offhand is larger than 15:
+								message "{@말머리} > &a20&r %%"
+							else:
+								message "{@말머리} > &a%100 - (5*level of {_enchant_type} of player's offhand)%&r %%"
+
+			if arg 1 is "시작" or "tlwkr":
+	#왼손에 아무것도 없을 때
+				if player's offhand is air:
+					message "{@말머리} &4장비를 왼손에 착용해주세요." to player
+					exit
+	
+				else:
+		#지원하는 무기의 타입이 아닐 때
+					if "%type of player's offhand%" don't contain "shovel" or "pickaxe" or "axe" or "sword":
+						message "{@말머리} &4인챈트가 가능한 장비가 아닙니다." to player
+						message " &o인챈트 가능한 장비&r &b>>>&r &a삽, 도끼, 곡괭이, 칼&r" to player
+
+					else:
+						if arg 2 is set:
+							#150만원 라인업
+							if arg 2 is "날카로움":
+								set {_enchant_type} to sharpness
+								set {_mul_price} to 150
+								set {_typez} to 1
+							else if arg 2 is "내구성":
+								set {_enchant_type} to unbreaking
+								set {_mul_price} to 150
+								set {_typez} to 1
+							else if arg 2 is "효율":
+								set {_enchant_type} to efficiency
+								set {_mul_price} to 150
+								set {_typez} to 1
+							else if arg 2 is "바행":
+								set {_enchant_type} to luck of the sea
+								set {_mul_price} to 150
+								set {_typez} to 1
+
+							#300만원 라인업
+							else if arg 2 is "행운":
+								set {_enchant_type} to fortune
+								set {_mul_price} to 300
+								set {_typez} to 1
+
+							else if arg 2 is "약탈":
+								set {_enchant_type} to looting
+								set {_mul_price} to 300
+								set {_typez} to 1
+
+							#섬손, 수선
+							else if arg 2 is "수선":
+								if level of mending of player's offhand is not set:
+									set {_total_price} to 5000
+									set {_typez} to 2
+								else:
+									message "{@말머리} 이미 수선 옵션이 존재합니다." to player
+									exit
+
+							else if arg 2 is "섬손":
+								if level of silk touch of player's offhand is not set:
+									set {_total_price} to 500
+									set {_typez} to 3
+								else:
+									message "{@말머리} 이미 섬세한손 옵션이 존재합니다." to player
+									exit
+							else:
+								message "{@말머리} 올바른 인챈트 옵션을 입력해주세요." to player
+								exit
+			#섬손, 수선 제외 가격 계산
+							if {_typez} is 1:
+								set {_total_price} to ((level of {_enchant_type} of player's offhand+1) * {_mul_price})		
+			#돈을 검사
+							if player's money >= {_total_price}*10000:
+								execute console command "money take %player% %{_total_price}*10000%"
+				#수선, 섬세한손 인챈트
+								if {_typez} is not 1:
+									if {_typez} is 2:
+										enchant player's offhand with mending
+									else if {_typez} is 3:
+										enchant player's offhand with silk touch
+									log "★강화성공★%player%★%{_enchant_type}%★1★" to "ff_%player%_upgrade.log"
+									run player command "/summon fireworks_rocket ~ ~4 ~ {FireworksItem:{id:fireworks,Count:1,tag:{Fireworks:{Explosions:[{Type:1,Flicker:1b,Colors:[I;16711680,15662848,16742144,1769216,3342591,917609,9633976]},{Type:1,Flicker:1b,Colors:[I;16711680,15662848,16742144,1769216,3342591,917609,9633976]}]}}}}" as op
+								else:
+									if level of {_enchant_type} of player's offhand is larger than 15:
+										set {_endz} to 20
+										set {_resultz} to random integer between 0 and 100.1
+										if {_resultz} <= 20:
+											broadcast "{@말머리} &b&l%player%&r님이 &6&l%arg 2%&r &r옵션 &3&l%(level of {_enchant_type} of player's offhand+1)% &r레벨 강화에 성공하셨습니다! 축하합니다!"
+											log "★강화성공★%player%★%{_enchant_type}%★%(level of {_enchant_type} of player's offhand+1)%★" to "ff_%player%_upgrade.log"
+											set {_enchant} to "%{_enchant_type}% %((level of {_enchant_type} of player's offhand)+1)%" parsed as enchantment type
+											enchant player's offhand with {_enchant}
+											run player command "summon fireworks_rocket ~ ~2 ~ {FireworksItem:{id:fireworks,Count:1,tag:{Fireworks:{Explosions:[{Type:1,Flicker:1b,Colors:[I;16711680,15662848,16742144,1769216,3342591,917609,9633976]},{Type:1,Flicker:1b,Colors:[I;16711680,15662848,16742144,1769216,3342591,917609,9633976]}]}}}}" as op
+
+										else:
+											message "{@말머리} &4&l강화실패 &fTㅅT..."
+											log "●강화실패●%player%●%{_enchant_type}%●%(level of {_enchant_type} of player's offhand+1)%●" to "ff_%player%_upgrade.log"
+
+									else:
+										if level of {_enchant_type} of player's offhand is not set:
+											message "hello"
+											set {_endz} to 100
+										else:
+											set {_endz} to (100 - (5*level of {_enchant_type} of player's offhand))
+										set {_resultz} to random integer between 0 and 100.1
+										if {_resultz} <= {_endz}:
+											if (level of {_enchant_type} of player's offhand+1) >= 10:
+												broadcast "{@말머리} &b&l%player%&r님이 &6&l%arg 2%&r &r옵션 &3&l%(level of {_enchant_type} of player's offhand+1)% &r레벨 강화에 성공하셨습니다! 축하합니다!"
+												run player command "summon fireworks_rocket ~ ~4 ~ {FireworksItem:{id:fireworks,Count:1,tag:{Fireworks:{Explosions:[{Type:1,Flicker:1b,Colors:[I;16711680,15662848,16742144,1769216,3342591,917609,9633976]},{Type:1,Flicker:1b,Colors:[I;16711680,15662848,16742144,1769216,3342591,917609,9633976]}]}}}}" as op
+											else:
+												message "{@말머리} &a&l강화성공! &f*^*"
+												run player command "summon xp_orb ~ ~ ~ {Value:100}" as op
+											set {_enchant} to "%{_enchant_type}% %((level of {_enchant_type} of player's offhand)+1)%" parsed as enchantment type
+											log "★강화성공★%player%★%{_enchant_type}%★%(level of {_enchant_type} of player's offhand+1)%★" to "ff_%player%_upgrade.log"
+											enchant player's offhand with {_enchant}
+										else:
+											message "{@말머리} &4&l강화실패 &fTㅅT..."
+											log "●강화실패●%player%●%{_enchant_type}%●%(level of {_enchant_type} of player's offhand+1)%●" to "ff_%player%_upgrade.log"
+
+
+
+
+							else:
+								message "{@말머리} &4&l돈이 부족합니다." to player
+
+						else:
+							message "{@말머리} 올바른 인챈트 옵션을 입력해주세요." to player
+							exit
